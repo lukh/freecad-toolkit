@@ -5,61 +5,7 @@ import FreeCADGui as Gui
 from itertools import groupby
 from collections import defaultdict
 
-### FROM FF
-def is_fusion(obj):
-    if obj.TypeId == "Part::MultiFuse":
-        shape = obj.Shape
-        if shape is not None and (shape.ShapeType == "Compound" or shape.isValid() and len(shape.Faces) > 0):
-            return True
-    return False
-
-
-def is_part(obj):
-    return obj.TypeId == "App::Part"
-
-
-def is_group(obj):
-    return obj.TypeId == "App::DocumentObjectGroup"
-
-
-def is_profile(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "ProfileWidth") and hasattr(obj, "ProfileHeight") and hasattr(obj, "ProfileLength"):
-            return True
-    return False
-
-
-def is_trimmedbody(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "TrimmedBody"):
-            return True
-    return False
-
-
-def is_extrudedcutout(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "baseObject"):
-            return True
-    return False
-
-
-def is_link(obj):
-    return obj.TypeId == "App::Link" and hasattr(obj, "AttachmentOffset")
-
-
-def is_part_or_part_design(obj):
-    return obj.TypeId.startswith(("Part::", "PartDesign::"))
-### FROM FF
-
-
-
-def is_variant(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "Source") and hasattr(obj, "Enable"):
-            return True
-    return False
-
-
+from .utils import *
 
 def get_parents(obj):
     return reversed([p[0] for p in obj.Parents])
@@ -241,14 +187,14 @@ def group_elements_by(elements, groupby_obj = [], groupby_src = []):
 # print("GROUP")
 # group_elements_by(elements, groupby_src=["Name"])
 
-# exclude the object if any of the conditions are True
-include_if_any=[is_profile, is_trimmedbody, is_extrudedcutout]
-exclude_if_any=[lambda x : not (is_profile(x) or is_trimmedbody(x) or is_extrudedcutout(x))]
+# # exclude the object if any of the conditions are True
+# include_if_any=[is_profile, is_trimmedbody, is_extrudedcutout]
+# exclude_if_any=[lambda x : not (is_profile(x) or is_trimmedbody(x) or is_extrudedcutout(x))]
 
-print("list prof types")
-elements = list(traverse(obj, deepness=0, include_if_any=include_if_any, exclude_if_any=exclude_if_any))
-for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-    print(x)
+# print("list prof types")
+# elements = list(traverse(obj, deepness=0, include_if_any=include_if_any, exclude_if_any=exclude_if_any))
+# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
+#     print(x)
 
-print("GROUP")
-grouped_elements = group_elements_by(elements, groupby_src=["Family", "SizeName"])
+# print("GROUP")
+# grouped_elements = group_elements_by(elements, groupby_src=["Family", "SizeName"])
