@@ -19,32 +19,6 @@ def is_frameforge_container(obj):
             return True
     return False
 
-
-
-def is_profile(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "ProfileWidth") and hasattr(obj, "ProfileHeight") and hasattr(obj, "ProfileLength"):
-            return True
-    return False
-
-
-def is_trimmedbody(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "TrimmedBody"):
-            return True
-    return False
-
-
-def is_extrudedcutout(obj):
-    if obj.TypeId == "Part::FeaturePython":
-        if hasattr(obj, "baseObject"):
-            return True
-    return False
-
-
-def is_link(obj):
-    return obj.TypeId == "App::Link" and hasattr(obj, "AttachmentOffset")
-
 def is_variant(obj):
     if obj.TypeId == "Part::FeaturePython":
         if hasattr(obj, "Source") and hasattr(obj, "Enable"):
