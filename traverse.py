@@ -105,8 +105,8 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
 
 
 
-selection = Gui.Selection.getSelection()
-obj = selection[0]
+# selection = Gui.Selection.getSelection()
+# obj = selection[0]
 
 # ####################################################################################################
 # ## RAW LIST ###
@@ -154,13 +154,15 @@ def group_elements_by(elements, groupby_obj = [], groupby_src = []):
 
     group_by_func = lambda el : tuple(
         [(getattr(el[0], gbo, None) if isinstance(gbo, str) else gbo(el[0])) for gbo in groupby_obj] +
-        [(getattr(el[1], gbc, None) if isinstance(gbc, str) else gbo(gbc[1])) for gbc in groupby_src]
+        [(getattr(el[1], gbc, None) if isinstance(gbc, str) else gbc(el[1])) for gbc in groupby_src]
     )
 
     sorted_elements = sorted(elements, key = group_by_func)
 
-    return groupby(sorted_elements, group_by_func)
-
+    return [
+        (key, list(group))
+        for key, group in groupby(sorted_elements, group_by_func)
+    ]
 
 
 
