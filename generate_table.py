@@ -1,6 +1,7 @@
 from collections import defaultdict
 import FreeCAD as App
 import FreeCADGui as Gui
+from FreeCAD import Units
 
 from itertools import groupby
 from collections import defaultdict
@@ -46,16 +47,13 @@ def make_table(grouped_objects, attributes, funcs={}):
         if fmt is None:
             return str(value)
 
-        if isinstance(value, App.Units.Quantity):
-            value = value.Value
+        # if isinstance(value, App.Units.Quantity):
+        #     value = value.Value
 
         return format(value, fmt)
 
-    make_get_std_attr = lambda spec, fmt : lambda o, l : format_value(getattr(l, spec, getattr(o, spec, "N/A")), fmt)
-
-
-
-
+    make_get_std_attr = lambda spec : lambda o, l : getattr(l, spec, getattr(o, spec, "N/A"))
+    remove_quantity = lambda d : d.Value if isinstance(d, App.Units.Quantity) else d
 
     # build the list of functions that will work on each group of item
     header_functions = []
@@ -63,11 +61,11 @@ def make_table(grouped_objects, attributes, funcs={}):
 
         # let's makes lambdas that will either join or sum the property 's content of the group element
         # the first one will make a list of all the element's property, the second will sum them
-        make_group_func = lambda f : lambda l : ", ".join(list(set([str(f(*i)) for i in l])))
+        make_group_func = lambda f : lambda l : list(set([remove_quantity(f(*i)) for i in l]))
         if attr.startswith('+'):
             attr = attr[1:]
             # the sum is encapsuled in a list to be of the same "dimension" of the other make_group_func
-            make_group_func = lambda f : lambda l : sum([f(*i) for i in l])
+            make_group_func = lambda f : lambda l : [sum([remove_quantity(f(*i)) for i in l])]
 
         # get spec and fmt from attribute
         spec, *fmts = attr.split(':')
@@ -76,12 +74,13 @@ def make_table(grouped_objects, attributes, funcs={}):
         if spec.startswith('#'):
             f = funcs[spec[1:]]
         elif spec.startswith('.'):
-            f = make_get_std_attr(spec[1:], fmt)
+            f = make_get_std_attr(spec[1:])
         else:
             raise ValueError(f'Unknow prefix, must be . or # : {spec}')
 
 
-        header_functions.append(make_group_func(f))
+        make_format_func = lambda mgf, fmt : lambda l : ", ".join([format_value(i, fmt) for i in  mgf(l)])
+        header_functions.append(make_format_func(make_group_func(f), fmt))
 
 
     data = []
