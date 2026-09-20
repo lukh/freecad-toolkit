@@ -28,60 +28,59 @@ def make_table(grouped_objects, attributes, funcs={}):
         ".PID",
         "#family",
         ".SizeName",
-        ".Length",
+        ".Length:.2f",
         ".CuttingAngleA",
         ".CuttingAngleB",
         ".Cutout",
         "#count",
         ".Material",
-        "+.ApproxWeight",
+        "+.ApproxWeight:.2f",
         ".Label"
     ]
     """
 
-    # t = obj, lnks, attr = "Attribute"
-    # make_get_std_attr = lambda a : lambda o, l : getattr(l, a, getattr(o, a, "?"))
     def format_value(value, fmt=None):
+        if isinstance(value, str):
+            return value
+    
         if fmt is None:
             return str(value)
 
         if isinstance(value, App.Units.Quantity):
-            return value.UserString
+            value = value.Value
 
         return format(value, fmt)
 
-    def make_get_std_attr(spec):
-        if ":" in spec:
-            attr, fmt = spec.split(":", 1)
-        else:
-            attr = spec
-            fmt = None
+    make_get_std_attr = lambda spec, fmt : lambda o, l : format_value(getattr(l, spec, getattr(o, spec, "N/A")), fmt)
 
-        def get_attr(o, l):
-            value = getattr(l, attr, getattr(o, attr, "N/A"))
 
-            if value == "N/A":
-                return value
 
-            return format_value(value, fmt)
 
-        return get_attr
 
     # build the list of functions that will work on each group of item
     header_functions = []
     for attr in attributes:
+
+        # let's makes lambdas that will either join or sum the property 's content of the group element
+        # the first one will make a list of all the element's property, the second will sum them
         make_group_func = lambda f : lambda l : ", ".join(list(set([str(f(*i)) for i in l])))
         if attr.startswith('+'):
             attr = attr[1:]
+            # the sum is encapsuled in a list to be of the same "dimension" of the other make_group_func
             make_group_func = lambda f : lambda l : sum([f(*i) for i in l])
 
-        if attr.startswith('#'):
-            f = funcs[attr[1:]]
-        elif attr.startswith('.'):
-            f = make_get_std_attr(attr[1:])
+        # get spec and fmt from attribute
+        spec, *fmts = attr.split(':')
+        fmt = fmts[0] if len(fmts) == 1 else None
+
+        if spec.startswith('#'):
+            f = funcs[spec[1:]]
+        elif spec.startswith('.'):
+            f = make_get_std_attr(spec[1:], fmt)
         else:
-            raise ValueError(f'Unknow prefix, must be . or # : {attr}')
-        
+            raise ValueError(f'Unknow prefix, must be . or # : {spec}')
+
+
         header_functions.append(make_group_func(f))
 
 
