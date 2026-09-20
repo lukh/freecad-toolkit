@@ -1,7 +1,6 @@
 from collections import defaultdict
 import FreeCAD as App
 import FreeCADGui as Gui
-from FreeCAD import Units
 
 from itertools import groupby
 from collections import defaultdict
@@ -87,8 +86,5 @@ def make_table(grouped_objects, attributes, funcs={}):
     for key, objects in grouped_objects:
         row = [hf(objects) for hf in header_functions]
         data.append(row)
-
-    for row in data:
-        print(data)
 
     return data
