@@ -46,7 +46,10 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
     # is_profile(o) or is_trimmedbody(o) or is_extrudedcutout(o)
 
     elements = [o for o in obj.Group 
-        if (is_variant(o) or o.TypeId == "App::Link" or any([f(o) for f in include_if_any]))
+        if (
+            is_variant(o) or 
+            #o.TypeId == "App::Link" or 
+            any([f(o) for f in include_if_any]))
         and not any([f(o) for f in exclude_if_any])
     ]
 
