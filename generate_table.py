@@ -52,7 +52,12 @@ def make_table(grouped_objects, attributes, funcs={}):
         return format(value, fmt)
 
     make_get_std_attr = lambda spec : lambda o, l : getattr(l, spec, getattr(o, spec, "N/A"))
+
     remove_quantity = lambda d : d.Value if isinstance(d, App.Units.Quantity) else d
+    def round_if(val, dec=4):
+        if isinstance(val, (float, App.Units.Quantity)):
+            return round(val, dec)
+        return val
 
     # build the list of functions that will work on each group of item
     header_functions = []
@@ -60,11 +65,11 @@ def make_table(grouped_objects, attributes, funcs={}):
 
         # let's makes lambdas that will either join or sum the property 's content of the group element
         # the first one will make a list of all the element's property, the second will sum them
-        make_group_func = lambda f : lambda l : list(set([remove_quantity(f(*i)) for i in l]))
+        make_group_func = lambda f : lambda l : list(set([round_if(remove_quantity(f(*i))) for i in l]))
         if attr.startswith('+'):
             attr = attr[1:]
             # the sum is encapsuled in a list to be of the same "dimension" of the other make_group_func
-            make_group_func = lambda f : lambda l : [sum([remove_quantity(f(*i)) for i in l])]
+            make_group_func = lambda f : lambda l : [sum([round_if(remove_quantity(f(*i))) for i in l])]
 
         # get spec and fmt from attribute
         spec, *fmts = attr.split(':')

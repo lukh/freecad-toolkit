@@ -151,10 +151,15 @@ def group_elements_by(elements, groupby_obj = [], groupby_src = []):
     :groupby: (["Property", lambda, ...], ["Property", lambda, ...])
     """
 
+    def round_if(val, dec=4):
+        if isinstance(val, (float, App.Units.Quantity)):
+            return round(val, dec)
+        return val
+
 
     group_by_func = lambda el : tuple(
-        [(getattr(el[0], gbo, None) if isinstance(gbo, str) else gbo(el[0])) for gbo in groupby_obj] +
-        [(getattr(el[1], gbc, None) if isinstance(gbc, str) else gbc(el[1])) for gbc in groupby_src]
+        [round_if(getattr(el[0], gbo, None) if isinstance(gbo, str) else gbo(el[0])) for gbo in groupby_obj] +
+        [round_if(getattr(el[1], gbc, None) if isinstance(gbc, str) else gbc(el[1])) for gbc in groupby_src]
     )
 
     sorted_elements = sorted(elements, key = group_by_func)
