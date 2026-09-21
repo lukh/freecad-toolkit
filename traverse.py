@@ -81,10 +81,11 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
             # for a sub part, ie a PartContainer or a Assembly Object
 
             # TODO : recursly find src ???? (link of link)
+            e_src = get_link(e)
 
-            if is_part(e.LinkedObject) or e.LinkedObject.TypeId == 'Assembly::AssemblyObject':
+            if is_part(e_src) or e_src.TypeId == 'Assembly::AssemblyObject':
                 if include_subpartcontainers:
-                    yield (e, e.LinkedObject)
+                    yield (e, e_src)
 
                 # recursive call
                 if (deepness is None) or (deepness > 0):
@@ -100,7 +101,7 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
             
             # this is a simple link (FF or Assembly)
             else:
-                yield (e, e.LinkedObject)
+                yield (e, e_src)
 
         else:
             yield (e, e)
