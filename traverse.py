@@ -1,14 +1,15 @@
 from collections import defaultdict
+from itertools import groupby
+
 import FreeCAD as App
 import FreeCADGui as Gui
 
-from itertools import groupby
-from collections import defaultdict
-
 from .utils import *
+
 
 def get_parents(obj):
     return reversed([p[0] for p in obj.Parents])
+
 
 def get_parents_groups(obj):
     def scan(obj):
@@ -20,19 +21,18 @@ def get_parents_groups(obj):
     l = list(scan(obj))
     return l
 
+
 def get_parents_path(obj):
     p = get_parents(obj)
     pg = get_parents_groups(obj)
 
     return "/".join([x.Label for x in p]) + ":" + "/".join([y.Label for y in pg])
 
-def traverse(obj, include_subpartcontainers=True, deepness=None,
-        include_if_any=[],
-        exclude_if_any=[]
-    ):
+
+def traverse(obj, include_subpartcontainers=True, deepness=None, include_if_any=[], exclude_if_any=[]):
     """
     A Generic function to traverse and yield objects in a Part Container, or an Assembly
-    :include_subpartcontainers : include sub containers in the list 
+    :include_subpartcontainers : include sub containers in the list
     :deepness : traverse recursivity, None for no infinity, or an integer (0 for first level, 1 for the two first levels, etc)
     :include_if_any: include the object if any of the conditions are True
     :exclude_if_any: exclude the object if any of the conditions are True
@@ -45,11 +45,15 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
 
     # is_profile(o) or is_trimmedbody(o) or is_extrudedcutout(o)
 
-    elements = [o for o in obj.Group 
+    elements = [
+        o
+        for o in obj.Group
         if (
-            is_variant(o) or 
-            #o.TypeId == "App::Link" or 
-            any([f(o) for f in include_if_any]))
+            is_variant(o)
+            or
+            # o.TypeId == "App::Link" or
+            any([f(o) for f in include_if_any])
+        )
         and not any([f(o) for f in exclude_if_any])
     ]
 
@@ -57,56 +61,53 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
 
     # TODO try to find a better solution to catch children
     for e in elements:
-        # a Variant Link will "claim children", so if it is a VariantLink, let's check 
+        # a Variant Link will "claim children", so if it is a VariantLink, let's check
 
-        if not is_variant(e): # NOT A VariantLink
+        if not is_variant(e):  # NOT A VariantLink
             # Group contains all elements.
-            # ignore "childrens" (from claimChildren) will avoid to get noise, ie, for instance, 
+            # ignore "childrens" (from claimChildren) will avoid to get noise, ie, for instance,
             # profiles used as a base for other profiles in frameforge, or feature in Body.
             ignored_set.update(e.ViewObject.claimChildren())
 
-        else: # a Variant Link
+        else:  # a Variant Link
             ignored_set.add(e)
-            if not e.Enable : # Disabled Variant Link :
+            if not e.Enable:  # Disabled Variant Link :
                 print("Ignoring", e.Label, e.Source.Label)
                 # add the direct children to ignored set, else keep it as element
                 ignored_set.update(e.ViewObject.claimChildren())
-
 
     elements_set = set(elements) - ignored_set
     elements = list(elements_set)
 
     for e in elements:
-        if e.TypeId == "App::Link": # either a FFLink, or an Assembly Link ?
+        if e.TypeId == "App::Link":  # either a FFLink, or an Assembly Link ?
             # for a sub part, ie a PartContainer or a Assembly Object
 
             # TODO : recursly find src ???? (link of link)
             e_src = get_link(e)
 
-            if is_part(e_src) or e_src.TypeId == 'Assembly::AssemblyObject':
+            if is_part(e_src) or e_src.TypeId == "Assembly::AssemblyObject":
                 if include_subpartcontainers:
                     yield (e, e_src)
 
                 # recursive call
                 if (deepness is None) or (deepness > 0):
-                        nd = deepness-1 if deepness is not None else None
-                             
-                        yield from traverse(
-                            e, 
-                            include_subpartcontainers=include_subpartcontainers, 
-                            deepness=nd,
-                            include_if_any=include_if_any,
-                            exclude_if_any=exclude_if_any
-                        )
-            
+                    nd = deepness - 1 if deepness is not None else None
+
+                    yield from traverse(
+                        e,
+                        include_subpartcontainers=include_subpartcontainers,
+                        deepness=nd,
+                        include_if_any=include_if_any,
+                        exclude_if_any=exclude_if_any,
+                    )
+
             # this is a simple link (FF or Assembly)
             else:
                 yield (e, e_src)
 
         else:
             yield (e, e)
-    
-
 
 
 # selection = Gui.Selection.getSelection()
@@ -144,11 +145,7 @@ def traverse(obj, include_subpartcontainers=True, deepness=None,
 # ####################################################################################################
 
 
-
-
-
-
-def group_elements_by(elements, groupby_obj = [], groupby_src = []):
+def group_elements_by(elements, groupby_obj=[], groupby_src=[]):
     """
     Group elements by the groupby list
 
@@ -160,30 +157,25 @@ def group_elements_by(elements, groupby_obj = [], groupby_src = []):
             return round(val, dec)
         return val
 
-
-    group_by_func = lambda el : tuple(
-        [round_if(getattr(el[0], gbo, None) if isinstance(gbo, str) else gbo(el[0])) for gbo in groupby_obj] +
-        [round_if(getattr(el[1], gbc, None) if isinstance(gbc, str) else gbc(el[1])) for gbc in groupby_src]
+    group_by_func = lambda el: tuple(
+        [round_if(getattr(el[0], gbo, None) if isinstance(gbo, str) else gbo(el[0])) for gbo in groupby_obj]
+        + [round_if(getattr(el[1], gbc, None) if isinstance(gbc, str) else gbc(el[1])) for gbc in groupby_src]
     )
 
-    sorted_elements = sorted(elements, key = group_by_func)
+    sorted_elements = sorted(elements, key=group_by_func)
 
-    return [
-        (key, list(group))
-        for key, group in groupby(sorted_elements, group_by_func)
-    ]
+    return [(key, list(group)) for key, group in groupby(sorted_elements, group_by_func)]
 
 
-
-# def make_list(elements, 
+# def make_list(elements,
 #         columns=[
-#             ("obj", lambda o : get_parents_path(o)), 
+#             ("obj", lambda o : get_parents_path(o)),
 #             ("obj", "Name"),
 #             ("obj", "PID"),
 #             ("lnk", "PlumeIPN"),
 #         ],
 #         groupby=[
-#             ('obj', lambda o : get_parents_path(o)), 
+#             ('obj', lambda o : get_parents_path(o)),
 #             ('lnk', "PlumeIPN"),
 #         ]
 #     )
