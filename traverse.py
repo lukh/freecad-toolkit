@@ -110,46 +110,12 @@ def traverse(obj, include_subpartcontainers=True, deepness=None, include_if_any=
             yield (e, e)
 
 
-# selection = Gui.Selection.getSelection()
-# obj = selection[0]
-
-# ####################################################################################################
-# ## RAW LIST ###
-# include_if_any=[is_profile, is_trimmedbody, is_extrudedcutout, is_part_or_part_design]
-# print()
-# print()
-# print()
-# print("TOP LEVEL ONLY")
-# elements = list(traverse(obj, deepness=0, include_if_any=include_if_any))
-# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-#     print(x)
-
-
-# print()
-# print("TOP LEVEL Without SubContainer")
-# elements = list(traverse(obj, deepness=0, include_subpartcontainers=False, include_if_any=include_if_any))
-# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-#     print(x)
-
-# print()
-# print("FULL LEVEL With SubContainer")
-# elements = list(traverse(obj, deepness=None, include_if_any=include_if_any))
-# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-#     print(x)
-
-# print()
-# print("FULL LEVEL Without SubContainer")
-# elements = list(traverse(obj, deepness=None, include_subpartcontainers=False, include_if_any=include_if_any))
-# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-#     print(x)
-# ####################################################################################################
-
-
 def group_elements_by(elements, groupby_obj=[], groupby_src=[]):
     """
     Group elements by the groupby list
 
     :groupby: (["Property", lambda, ...], ["Property", lambda, ...])
+    :return: grouped_objects = [(key, [(obj, lnk), (obj, lnk), ...]), ...]
     """
 
     def round_if(val, dec=4):
@@ -166,38 +132,3 @@ def group_elements_by(elements, groupby_obj=[], groupby_src=[]):
 
     return [(key, list(group)) for key, group in groupby(sorted_elements, group_by_func)]
 
-
-# def make_list(elements,
-#         columns=[
-#             ("obj", lambda o : get_parents_path(o)),
-#             ("obj", "Name"),
-#             ("obj", "PID"),
-#             ("lnk", "PlumeIPN"),
-#         ],
-#         groupby=[
-#             ('obj', lambda o : get_parents_path(o)),
-#             ('lnk', "PlumeIPN"),
-#         ]
-#     )
-
-
-# include_if_any=[is_profile, is_trimmedbody, is_extrudedcutout, is_part_or_part_design]
-# print("Top Level")
-# elements = list(traverse(obj, deepness=0, include_if_any=include_if_any))
-# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-#     print(x)
-
-# print("GROUP")
-# group_elements_by(elements, groupby_src=["Name"])
-
-# # exclude the object if any of the conditions are True
-# include_if_any=[is_profile, is_trimmedbody, is_extrudedcutout]
-# exclude_if_any=[lambda x : not (is_profile(x) or is_trimmedbody(x) or is_extrudedcutout(x))]
-
-# print("list prof types")
-# elements = list(traverse(obj, deepness=0, include_if_any=include_if_any, exclude_if_any=exclude_if_any))
-# for x in [(get_parents_path(e), e.Label, e.Name, l.Name) for e, l in elements]:
-#     print(x)
-
-# print("GROUP")
-# grouped_elements = group_elements_by(elements, groupby_src=["Family", "SizeName"])
