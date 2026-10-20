@@ -23,6 +23,11 @@ def is_frameforge_container(obj):
             return True
     return False
 
+def has_group_capability(obj):
+    return hasattr(obj, "Group")
+
+def has_pid(obj):
+    return hasattr(obj, "PID")
 
 def is_variant(obj):
     if obj.TypeId == "Part::FeaturePython":
