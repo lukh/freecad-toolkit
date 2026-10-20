@@ -115,7 +115,6 @@ def group_elements_by(elements, groupby_obj=[], groupby_src=[]):
     Group elements by the groupby list
 
     :groupby: (["Property", lambda, ...], ["Property", lambda, ...])
-    :return: grouped_objects = [(key, [(obj, lnk), (obj, lnk), ...]), ...]
     """
 
     def round_if(val, dec=4):
